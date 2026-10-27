@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f0">
+  <meta name="description" content="20字×30行、1枚600字の横書き原稿用紙エディタ。iPadでも日本語入力、自動保存、テキスト保存、印刷ができます。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="原稿用紙">
+  <title>原稿用紙 — 600字の横書きエディタ</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="原稿用紙 ホーム">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4.5" y="3.5" width="23" height="25" rx="2"/><path d="M12 4v24M20 4v24M5 12h22M5 20h22"/></svg>
+      <span>原稿用紙</span><span class="brand-caption">書くことに、集中。</span>
+    </a>
+    <span class="format-badge">横書き <span>20 × 30</span></span>
+  </header>
+
+  <main>
+    <div class="intro">
+      <div><p class="eyebrow">A LITTLE SPACE FOR YOUR WORDS</p><h1>思いついた言葉を、一文字ずつ。</h1><p class="intro-description">20字 × 30行。600マスの、小さな書斎。</p></div>
+      <div class="save-state" id="save-state" role="status"><span class="status-dot"></span><span id="save-label">この端末に自動保存</span></div>
+    </div>
+
+    <div class="workspace-toolbar">
+      <div class="view-tabs" role="tablist" aria-label="表示の切り替え">
+        <button class="view-tab active" id="tab-write" role="tab" aria-selected="true" aria-controls="editor-panel" type="button">書く</button>
+        <button class="view-tab" id="tab-preview" role="tab" aria-selected="false" aria-controls="preview-panel" tabindex="-1" type="button">原稿用紙</button>
+      </div>
+      <span class="desktop-label"><span class="small-square"></span> マイ原稿</span>
+      <div class="actions">
+        <button class="button icon-button" id="import-button" type="button" aria-label="テキストファイルを開く" title="テキストファイルを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9l-2 11H3V7Zm0 0V4h7l2 3"/></svg><span>開く</span></button>
+        <button class="button" id="print-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H3V8h18v9h-4M7 14h10v7H7zM17 11h1"/></svg><span>印刷</span></button>
+        <button class="button primary" id="download-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>テキスト保存</span></button>
+      </div>
+    </div>
+
+    <div class="workspace" id="workspace" data-view="write">
+      <section class="editor-panel" id="editor-panel" aria-label="原稿を編集">
+        <div class="editor-heading"><span class="section-label">本文を編集</span><button class="text-button" id="new-button" type="button">新しい原稿 <span aria-hidden="true">＋</span></button></div>
+        <label class="visually-hidden" for="document-title">原稿のタイトル</label>
+        <input id="document-title" class="title-input" type="text" placeholder="無題の原稿" maxlength="100" autocomplete="off">
+        <div class="writing-area"><label class="visually-hidden" for="manuscript">本文</label><textarea id="manuscript" placeholder="ここから、書きはじめましょう。&#10;&#10;入力した文章が、原稿用紙に&#10;一文字ずつ並びます。" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></div>
+        <div class="editor-bottom"><span><strong id="character-count">0</strong> 字 <span class="subtle">（改行を除く）</span></span><button class="text-button" id="indent-button" type="button" title="カーソル位置に全角スペースを挿入">一字下げ</button></div>
+        <div class="progress-track" aria-hidden="true"><div id="progress-bar"></div></div>
+        <p class="editor-hint">1枚600マス。続きは自動で次の用紙へ。</p>
+      </section>
+
+      <section class="preview-panel" id="preview-panel" aria-label="20字30行の原稿用紙プレビュー">
+        <div class="preview-heading"><span class="section-label">原稿用紙プレビュー</span><span class="preview-format">20字 × 30行 ・ 600マス</span></div>
+        <div class="paper-wrap"><article class="paper" id="paper"><div class="paper-top"><span id="paper-title">無題の原稿</span><span>横書き / 600字詰</span></div><div class="grid-area"><div class="row-labels" aria-hidden="true"><span>1</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span></div><div id="paper-grid" class="paper-grid" aria-label="原稿用紙、1枚目"></div></div><div class="paper-bottom"><span>20 × 30</span><span id="paper-page">01</span></div></article></div>
+        <nav class="pagination" aria-label="原稿用紙のページ"><button class="page-button" id="previous-page" type="button" aria-label="前の用紙" disabled>←</button><span><strong id="current-page">1</strong><span class="subtle"> / <span id="total-pages">1</span> 枚</span></span><button class="page-button" id="next-page" type="button" aria-label="次の用紙" disabled>→</button></nav>
+      </section>
+    </div>
+
+    <footer class="site-footer"><span>言葉を置く。考えが、少しずつ形になる。</span><button id="help-button" class="text-button" type="button">使い方と保存について <span aria-hidden="true">↗</span></button></footer>
+  </main>
+
+  <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-heading"><h2 id="help-title">使い方と保存について</h2><button class="close-button" id="close-help" type="button" aria-label="閉じる">×</button></div><p>本文欄に入力すると、横20字・縦30行の原稿用紙に一文字ずつ表示します。半角文字や絵文字も1マスとして扱います。改行は次の行へ進み、600マスを超えると新しい用紙が増えます。</p><p>文章は<strong>この端末の、このブラウザー</strong>に自動保存します。別の端末には同期されません。ブラウザーのデータを消すと原稿も消えるため、大切な文章は「テキスト保存」でファイルにも残してください。保存できない場合は画面にお知らせします。</p><p>「開く」でUTF-8のテキストファイルを読み込めます。「印刷」では全ページをA4の原稿用紙として印刷できます。PDFに保存する場合は、印刷画面で保存先を選んでください。</p><p>iPadでは「書く」と「原稿用紙」で表示を切り替えられます。Safariの共有メニューから「ホーム画面に追加」すると、次回もすぐ開けます。</p><form method="dialog"><button class="button primary" type="submit">わかりました</button></form></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <input id="file-input" class="visually-hidden" type="file" accept=".txt,text/plain" tabindex="-1">
+  <div id="print-root" aria-hidden="true"></div>
+</body>
+</html>
