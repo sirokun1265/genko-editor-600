@@ -10,8 +10,18 @@
   <title>原稿用紙 — 600字の横書きエディタ</title>
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css">
-  <script type="module" src="./app.js"></script>
+  <link rel="stylesheet" href="./styles.css?v=20261027-3">
+  <script type="module">
+    import('./app.js?v=20261027-3').then(() => {
+      document.documentElement.dataset.editorReady = 'true';
+    }).catch(error => {
+      console.error('Editor initialization failed:', error);
+      document.getElementById('load-error').hidden = false;
+      document.getElementById('save-state').classList.add('error');
+      document.getElementById('save-label').textContent = '読み込みに失敗しました';
+      document.getElementById('reload-button').addEventListener('click', () => location.reload());
+    });
+  </script>
 </head>
 <body>
   <header class="site-header">
@@ -28,6 +38,8 @@
       <div class="save-state" id="save-state" role="status"><span class="status-dot"></span><span id="save-label">この端末に自動保存</span></div>
     </div>
 
+    <p id="load-error" class="load-error" role="alert" hidden>エディタを読み込めませんでした。入力した本文をコピーしてから再読み込みしてください。<button class="button" id="reload-button" type="button">再読み込み</button></p>
+    <noscript><p class="load-error">このエディタを使うには、Safariの設定でJavaScriptを有効にしてください。</p></noscript>
     <div class="workspace-toolbar">
       <div class="view-tabs" role="tablist" aria-label="表示の切り替え">
         <button class="view-tab active" id="tab-write" role="tab" aria-selected="true" aria-controls="editor-panel" type="button">書く</button>

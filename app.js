@@ -1,4 +1,4 @@
-import { layoutManuscript, PAGE_SIZE, safeFilename } from './manuscript.js';
+import { layoutManuscript, PAGE_SIZE, safeFilename } from './manuscript.js?v=20261027-3';
 
 const $ = id => document.getElementById(id);
 const storageKey = 'genko600.draft.v1';
@@ -43,14 +43,15 @@ function fillGrid(grid, pageIndex) {
     cell.className = 'cell' + ((row + 1) % 5 === 0 ? ' row-end' : '');
     const position = pageIndex * PAGE_SIZE + index;
     const value = layout.cells[position] || '';
-    const kind = layout.cellKinds[position];
-    if (kind === 'hanging' || kind === 'punctuation-pair') {
+    // An older cached layout module may not provide the newer formatting fields.
+    const kind = layout.cellKinds ? layout.cellKinds[position] : 'single';
+    const parts = layout.cellParts && layout.cellParts[position];
+    if ((kind === 'hanging' || kind === 'punctuation-pair') && parts) {
       cell.classList.add('combined', kind);
       const main = document.createElement('span');
       main.className = 'cell-main';
       const tail = document.createElement('span');
       tail.className = 'cell-tail';
-      const parts = layout.cellParts[position];
       main.textContent = parts.main;
       tail.textContent = parts.tail;
       cell.append(main, tail);
@@ -94,7 +95,7 @@ function update() {
     'double-mark': '三点リーダー・ダッシュは「……」「——」のように2字一組で使うのが一般的です。',
     'page-end-sharing': '用紙の最後のマスに文字と記号を一緒に入れています。字数制限がある場合は入力字数と提出先の指定を確認してください。'
   };
-  const notices = layout.warnings.map(code => messages[code]);
+  const notices = (layout.warnings || []).map(code => messages[code]).filter(Boolean);
   $('format-feedback').textContent = notices.join(' ');
   $('format-feedback').hidden = notices.length === 0;
   renderPage();
