@@ -46,10 +46,21 @@
         <div class="editor-heading"><span class="section-label">本文を編集</span><button class="text-button" id="new-button" type="button">新しい原稿 <span aria-hidden="true">＋</span></button></div>
         <label class="visually-hidden" for="document-title">原稿のタイトル</label>
         <input id="document-title" class="title-input" type="text" placeholder="無題の原稿" maxlength="100" autocomplete="off">
+        <details class="format-settings">
+          <summary>書式の設定 <span>句読点・字下げ・英数字</span></summary>
+          <div class="format-controls">
+            <div class="mode-label"><label for="layout-mode">マスの使い方</label><select id="layout-mode"><option value="manuscript">一般的な原稿用紙</option><option value="strict">1マス1字（禁則なし）</option></select></div>
+            <label><input id="pack-ascii" type="checkbox" checked>半角数字・英小文字は2字で1マス</label>
+            <label><input id="auto-indent" type="checkbox">段落を自動で一字下げ</label>
+            <p>書式はプレビューと印刷に反映します。入力本文や保存するテキストは変わりません。自動字下げでは、すでに空白がある段落と「『で始まる段落は追加で下げません。</p>
+          </div>
+        </details>
         <div class="writing-area"><label class="visually-hidden" for="manuscript">本文</label><textarea id="manuscript" placeholder="ここから、書きはじめましょう。&#10;&#10;入力した文章が、原稿用紙に&#10;一文字ずつ並びます。" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></div>
         <div class="editor-bottom"><span><strong id="character-count">0</strong> 字 <span class="subtle">（改行を除く）</span></span><button class="text-button" id="indent-button" type="button" title="カーソル位置に全角スペースを挿入">一字下げ</button></div>
         <div class="progress-track" aria-hidden="true"><div id="progress-bar"></div></div>
-        <p class="editor-hint">1枚600マス。続きは自動で次の用紙へ。</p>
+        <div class="paper-usage"><span id="layout-label">原稿用紙のルールを適用</span><span id="cell-usage">0 / 600マス（最終ページ）</span></div>
+        <p class="editor-hint">入力字数と使用マス数は異なる場合があります。</p>
+        <p id="format-feedback" class="format-feedback" role="status" hidden></p>
       </section>
 
       <section class="preview-panel" id="preview-panel" aria-label="20字30行の原稿用紙プレビュー">
@@ -62,7 +73,16 @@
     <footer class="site-footer"><span>言葉を置く。考えが、少しずつ形になる。</span><button id="help-button" class="text-button" type="button">使い方と保存について <span aria-hidden="true">↗</span></button></footer>
   </main>
 
-  <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-heading"><h2 id="help-title">使い方と保存について</h2><button class="close-button" id="close-help" type="button" aria-label="閉じる">×</button></div><p>本文欄に入力すると、横20字・縦30行の原稿用紙に一文字ずつ表示します。半角文字や絵文字も1マスとして扱います。改行は次の行へ進み、600マスを超えると新しい用紙が増えます。</p><p>文章は<strong>この端末の、このブラウザー</strong>に自動保存します。別の端末には同期されません。ブラウザーのデータを消すと原稿も消えるため、大切な文章は「テキスト保存」でファイルにも残してください。保存できない場合は画面にお知らせします。</p><p>「開く」でUTF-8のテキストファイルを読み込めます。「印刷」では全ページをA4の原稿用紙として印刷できます。PDFに保存する場合は、印刷画面で保存先を選んでください。</p><p>iPadでは「書く」と「原稿用紙」で表示を切り替えられます。Safariの共有メニューから「ホーム画面に追加」すると、次回もすぐ開けます。</p><form method="dialog"><button class="button primary" type="submit">わかりました</button></form></dialog>
+  <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-heading"><h2 id="help-title">使い方と保存について</h2><button class="close-button" id="close-help" type="button" aria-label="閉じる">×</button></div>
+    <p>横20字・縦30行、1枚600マスです。「書式の設定」でマスの使い方を選べます。次の処理はプレビューと印刷に反映し、本文を書き換えることはありません。</p>
+    <h3>一般的な原稿用紙の扱い</h3>
+    <ul class="rules-list"><li>句読点や括弧は原則1マス。句読点だけが行の最後のマスに入るときは、そのマスを使います。</li><li>自動折り返しで句読点や閉じ括弧が次の行頭に来るときは、前の行の最後のマスに文字と一緒に入れます。手動改行の直後にある場合は、本文の確認を促します。</li><li>「。」と、その直後の閉じ括弧（」など）は、行の途中でも1マスにまとめます。句点は自動で追加・削除しません。</li><li>開き括弧（「『（など）が行末で中身と離れないよう、このエディタでは次の行へ送ります。前の行末に空きマスが残る場合があります。</li><li>小さい「っ・ゃ・ゅ・ょ」や長音「ー」も1マスです。これらを行頭から強制的に移動しません。句読点は横書きの字形でマスの左下に表示します。</li><li>数字・英小文字は、設定をオンにすると半角の同種の文字を2字で1マスにします。英大文字・全角英数字・絵文字は1字で1マスです。</li><li>三点リーダーとダッシュは「……」「——」のように2字一組が一般的です。入力済みの一組は行をまたがず2マスに置き、単独の記号がある場合は確認を促します。</li><li>段落の始まりは一字下げます。「一字下げ」で全角空白を挿入するか、設定から自動字下げを選べます。会話や引用の字下げは提出先の指示を確認してください。</li></ul>
+    <h3>提出先の指定があるとき</h3>
+    <p>学校・試験・応募先によって細かな扱いが異なります。句読点を含め必ず1マス1字と指定された場合は「1マス1字（禁則なし）」を選んでください。この設定でも手動改行はそのまま反映します。要約などで改行禁止の指定があれば本文でも改行しないでください。</p>
+    <p>表示する字数は入力本文の改行を除く字数です。空白・句読点・括弧も数え、同じマスにまとめても字数は減りません。1枚に収まることが「600字以内」の保証にはなりません。題名欄はマス外の見出しです。題名・氏名をマス内に書く指定なら、本文に入れて位置を調整してください。</p>
+    <p class="rule-sources">参考：<a href="https://hiroba.jitco.or.jp/info/news_ja/news_htu_2026-02-09_ja/" target="_blank" rel="noopener noreferrer">JITCO</a>、<a href="https://benesse.jp/juken/201901/20190115-2.html" target="_blank" rel="noopener noreferrer">ベネッセ</a>、<a href="https://smt.ishin.jp/support/syouron/2.php" target="_blank" rel="noopener noreferrer">看護医療進学ネット</a>、<a href="https://kotoba.ninjal.ac.jp/qa/yokuaru/qa-11/" target="_blank" rel="noopener noreferrer">国立国語研究所</a></p>
+    <h3>保存と印刷</h3>
+    <p>文章と書式設定は<strong>この端末の、このブラウザー</strong>に自動保存します。別の端末には同期されません。ブラウザーのデータを消すと原稿も消えるため、大切な文章は「テキスト保存」でファイルにも残してください。保存できない場合は画面にお知らせします。</p><p>「開く」でUTF-8のテキストファイルを読み込めます。「印刷」では全ページをA4の原稿用紙として印刷できます。PDFに保存する場合は、印刷画面で保存先を選んでください。</p><p>iPadでは「書く」と「原稿用紙」で表示を切り替えられます。Safariの共有メニューから「ホーム画面に追加」すると、次回もすぐ開けます。</p><form method="dialog"><button class="button primary" type="submit">わかりました</button></form></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
   <input id="file-input" class="visually-hidden" type="file" accept=".txt,text/plain" tabindex="-1">
   <div id="print-root" aria-hidden="true"></div>

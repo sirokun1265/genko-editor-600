@@ -20,7 +20,7 @@ function toast(message) {
 function save() {
   clearTimeout(saveTimer);
   try {
-    localStorage.setItem(storageKey, JSON.stringify({ title: title.value, text: editor.value, savedAt: new Date().toISOString() }));
+    localStorage.setItem(storageKey, JSON.stringify({ title: title.value, text: editor.value, options: layoutOptions(), savedAt: new Date().toISOString() }));
     storageUnavailable = false;
     $('save-state').classList.remove('error');
     $('save-label').textContent = 'この端末に保存済み';
@@ -41,7 +41,24 @@ function fillGrid(grid, pageIndex) {
     const cell = document.createElement('span');
     const row = Math.floor(index / 20);
     cell.className = 'cell' + ((row + 1) % 5 === 0 ? ' row-end' : '');
-    cell.textContent = layout.cells[pageIndex * PAGE_SIZE + index] || '';
+    const position = pageIndex * PAGE_SIZE + index;
+    const value = layout.cells[position] || '';
+    const kind = layout.cellKinds[position];
+    if (kind === 'hanging' || kind === 'punctuation-pair') {
+      cell.classList.add('combined', kind);
+      const main = document.createElement('span');
+      main.className = 'cell-main';
+      const tail = document.createElement('span');
+      tail.className = 'cell-tail';
+      const parts = layout.cellParts[position];
+      main.textContent = parts.main;
+      tail.textContent = parts.tail;
+      cell.append(main, tail);
+      cell.title = value;
+    } else {
+      cell.textContent = value;
+      if (kind === 'ascii-pair') cell.classList.add('ascii-pair');
+    }
     fragment.append(cell);
   }
   grid.replaceChildren(fragment);
@@ -57,11 +74,29 @@ function renderPage() {
   $('previous-page').disabled = currentPage === 0;
   $('next-page').disabled = currentPage === layout.pageCount - 1;
 }
+function layoutOptions() {
+  return { mode: $('layout-mode').value, packAscii: $('pack-ascii').checked, autoIndent: $('auto-indent').checked };
+}
 function update() {
-  layout = layoutManuscript(editor.value);
+  const options = layoutOptions();
+  const strict = options.mode === 'strict';
+  $('pack-ascii').disabled = strict;
+  $('auto-indent').disabled = strict;
+  layout = layoutManuscript(editor.value, options);
   $('character-count').textContent = layout.count.toLocaleString('ja-JP');
   const used = layout.cells.length % PAGE_SIZE || (layout.cells.length ? PAGE_SIZE : 0);
   $('progress-bar').style.width = `${used / PAGE_SIZE * 100}%`;
+  $('cell-usage').textContent = `${used} / 600マス（最終ページ）`;
+  $('layout-label').textContent = strict ? '1マス1字・禁則なし' : '原稿用紙のルールを適用';
+  const messages = {
+    'indent': '段落の先頭の一字下げを確認してください。書式設定から自動字下げも選べます。',
+    'manual-line-start': '本文の先頭や手動改行の直後に句読点・閉じ括弧があります。改行位置を確認してください。',
+    'double-mark': '三点リーダー・ダッシュは「……」「——」のように2字一組で使うのが一般的です。',
+    'page-end-sharing': '用紙の最後のマスに文字と記号を一緒に入れています。字数制限がある場合は入力字数と提出先の指定を確認してください。'
+  };
+  const notices = layout.warnings.map(code => messages[code]);
+  $('format-feedback').textContent = notices.join(' ');
+  $('format-feedback').hidden = notices.length === 0;
   renderPage();
 }
 function changeView(view, focusTab = false) {
@@ -110,6 +145,11 @@ try {
     if (typeof draft.text === 'string' && typeof draft.title === 'string') {
       editor.value = draft.text;
       title.value = draft.title;
+      if (draft.options && typeof draft.options === 'object') {
+        $('layout-mode').value = draft.options.mode === 'strict' ? 'strict' : 'manuscript';
+        $('pack-ascii').checked = draft.options.packAscii !== false;
+        $('auto-indent').checked = draft.options.autoIndent === true;
+      }
       $('save-label').textContent = '前回の原稿を復元しました';
     }
   }
@@ -125,6 +165,9 @@ editor.addEventListener('input', () => { if (!composing) { update(); queueSave()
 title.addEventListener('input', () => { $('paper-title').textContent = title.value.trim() || '無題の原稿'; queueSave(); });
 $('previous-page').addEventListener('click', () => { currentPage--; renderPage(); });
 $('next-page').addEventListener('click', () => { currentPage++; renderPage(); });
+for (const id of ['layout-mode', 'pack-ascii', 'auto-indent']) {
+  $(id).addEventListener('change', () => { update(); queueSave(); });
+}
 for (const view of ['write', 'preview']) {
   $('tab-' + view).addEventListener('click', () => changeView(view));
   $('tab-' + view).addEventListener('keydown', event => {
